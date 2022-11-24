@@ -16,31 +16,33 @@ from ldm.models.diffusion.ddim import DDIMSampler, noise_like
 # Adapted from:
 # https://github.com/runwayml/stable-diffusion/blob/main/ldm/models/diffusion/ddim.py
 # =================================================================================================
+
+
 @torch.no_grad()
 def sample_ddim(self,
-            S,
-            batch_size,
-            shape,
-            conditioning=None,
-            callback=None,
-            normals_sequence=None,
-            img_callback=None,
-            quantize_x0=False,
-            eta=0.,
-            mask=None,
-            x0=None,
-            temperature=1.,
-            noise_dropout=0.,
-            score_corrector=None,
-            corrector_kwargs=None,
-            verbose=True,
-            x_T=None,
-            log_every_t=100,
-            unconditional_guidance_scale=1.,
-            unconditional_conditioning=None,
-            # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
-            **kwargs
-            ):
+                S,
+                batch_size,
+                shape,
+                conditioning=None,
+                callback=None,
+                normals_sequence=None,
+                img_callback=None,
+                quantize_x0=False,
+                eta=0.,
+                mask=None,
+                x0=None,
+                temperature=1.,
+                noise_dropout=0.,
+                score_corrector=None,
+                corrector_kwargs=None,
+                verbose=True,
+                x_T=None,
+                log_every_t=100,
+                unconditional_guidance_scale=1.,
+                unconditional_conditioning=None,
+                # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
+                **kwargs
+                ):
     if conditioning is not None:
         if isinstance(conditioning, dict):
             ctmp = conditioning[list(conditioning.keys())[0]]
@@ -48,10 +50,12 @@ def sample_ddim(self,
                 ctmp = ctmp[0]
             cbs = ctmp.shape[0]
             if cbs != batch_size:
-                print(f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
+                print(
+                    f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
         else:
             if conditioning.shape[0] != batch_size:
-                print(f"Warning: Got {conditioning.shape[0]} conditionings but batch-size is {batch_size}")
+                print(
+                    f"Warning: Got {conditioning.shape[0]} conditionings but batch-size is {batch_size}")
 
     self.make_schedule(ddim_num_steps=S, ddim_eta=eta, verbose=verbose)
     # sampling
@@ -76,10 +80,11 @@ def sample_ddim(self,
                                                 )
     return samples, intermediates
 
+
 @torch.no_grad()
 def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
-                    temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                    unconditional_guidance_scale=1., unconditional_conditioning=None):
+                  temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
+                  unconditional_guidance_scale=1., unconditional_conditioning=None, dynamic_threshold=None):
     b, *_, device = *x.shape, x.device
 
     if unconditional_conditioning is None or unconditional_guidance_scale == 1.:
@@ -105,7 +110,8 @@ def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=F
 
     if score_corrector is not None:
         assert self.model.parameterization == "eps"
-        e_t = score_corrector.modify_score(self.model, e_t, x, t, c, **corrector_kwargs)
+        e_t = score_corrector.modify_score(
+            self.model, e_t, x, t, c, **corrector_kwargs)
 
     alphas = self.model.alphas_cumprod if use_original_steps else self.ddim_alphas
     alphas_prev = self.model.alphas_cumprod_prev if use_original_steps else self.ddim_alphas_prev
@@ -115,7 +121,8 @@ def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=F
     a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
     a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
     sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
-    sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
+    sqrt_one_minus_at = torch.full(
+        (b, 1, 1, 1), sqrt_one_minus_alphas[index], device=device)
 
     # current prediction for x_0
     pred_x0 = (x - sqrt_one_minus_at * e_t) / a_t.sqrt()
@@ -138,29 +145,29 @@ def p_sample_ddim(self, x, c, t, index, repeat_noise=False, use_original_steps=F
 # =================================================================================================
 @torch.no_grad()
 def sample_plms(self,
-            S,
-            batch_size,
-            shape,
-            conditioning=None,
-            callback=None,
-            normals_sequence=None,
-            img_callback=None,
-            quantize_x0=False,
-            eta=0.,
-            mask=None,
-            x0=None,
-            temperature=1.,
-            noise_dropout=0.,
-            score_corrector=None,
-            corrector_kwargs=None,
-            verbose=True,
-            x_T=None,
-            log_every_t=100,
-            unconditional_guidance_scale=1.,
-            unconditional_conditioning=None,
-            # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
-            **kwargs
-            ):
+                S,
+                batch_size,
+                shape,
+                conditioning=None,
+                callback=None,
+                normals_sequence=None,
+                img_callback=None,
+                quantize_x0=False,
+                eta=0.,
+                mask=None,
+                x0=None,
+                temperature=1.,
+                noise_dropout=0.,
+                score_corrector=None,
+                corrector_kwargs=None,
+                verbose=True,
+                x_T=None,
+                log_every_t=100,
+                unconditional_guidance_scale=1.,
+                unconditional_conditioning=None,
+                # this has to come in the same format as the conditioning, # e.g. as encoded tokens, ...
+                **kwargs
+                ):
     if conditioning is not None:
         if isinstance(conditioning, dict):
             ctmp = conditioning[list(conditioning.keys())[0]]
@@ -168,10 +175,12 @@ def sample_plms(self,
                 ctmp = ctmp[0]
             cbs = ctmp.shape[0]
             if cbs != batch_size:
-                print(f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
+                print(
+                    f"Warning: Got {cbs} conditionings but batch-size is {batch_size}")
         else:
             if conditioning.shape[0] != batch_size:
-                print(f"Warning: Got {conditioning.shape[0]} conditionings but batch-size is {batch_size}")
+                print(
+                    f"Warning: Got {conditioning.shape[0]} conditionings but batch-size is {batch_size}")
 
     self.make_schedule(ddim_num_steps=S, ddim_eta=eta, verbose=verbose)
     # sampling
@@ -199,8 +208,8 @@ def sample_plms(self,
 
 @torch.no_grad()
 def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
-                    temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                    unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None):
+                  temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
+                  unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None):
     b, *_, device = *x.shape, x.device
 
     def get_model_output(x, t):
@@ -209,27 +218,31 @@ def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=F
         else:
             x_in = torch.cat([x] * 2)
             t_in = torch.cat([t] * 2)
-            
+
             if isinstance(c, dict):
                 assert isinstance(unconditional_conditioning, dict)
                 c_in = dict()
                 for k in c:
                     if isinstance(c[k], list):
                         c_in[k] = [
-                            torch.cat([unconditional_conditioning[k][i], c[k][i]])
+                            torch.cat(
+                                [unconditional_conditioning[k][i], c[k][i]])
                             for i in range(len(c[k]))
                         ]
                     else:
-                        c_in[k] = torch.cat([unconditional_conditioning[k], c[k]])
+                        c_in[k] = torch.cat(
+                            [unconditional_conditioning[k], c[k]])
             else:
                 c_in = torch.cat([unconditional_conditioning, c])
 
             e_t_uncond, e_t = self.model.apply_model(x_in, t_in, c_in).chunk(2)
-            e_t = e_t_uncond + unconditional_guidance_scale * (e_t - e_t_uncond)
+            e_t = e_t_uncond + unconditional_guidance_scale * \
+                (e_t - e_t_uncond)
 
         if score_corrector is not None:
             assert self.model.parameterization == "eps"
-            e_t = score_corrector.modify_score(self.model, e_t, x, t, c, **corrector_kwargs)
+            e_t = score_corrector.modify_score(
+                self.model, e_t, x, t, c, **corrector_kwargs)
 
         return e_t
 
@@ -243,7 +256,8 @@ def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=F
         a_t = torch.full((b, 1, 1, 1), alphas[index], device=device)
         a_prev = torch.full((b, 1, 1, 1), alphas_prev[index], device=device)
         sigma_t = torch.full((b, 1, 1, 1), sigmas[index], device=device)
-        sqrt_one_minus_at = torch.full((b, 1, 1, 1), sqrt_one_minus_alphas[index],device=device)
+        sqrt_one_minus_at = torch.full(
+            (b, 1, 1, 1), sqrt_one_minus_alphas[index], device=device)
 
         # current prediction for x_0
         pred_x0 = (x - sqrt_one_minus_at * e_t) / a_t.sqrt()
@@ -251,7 +265,8 @@ def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=F
             pred_x0, _, *_ = self.model.first_stage_model.quantize(pred_x0)
         # direction pointing to x_t
         dir_xt = (1. - a_prev - sigma_t**2).sqrt() * e_t
-        noise = sigma_t * noise_like(x.shape, device, repeat_noise) * temperature
+        noise = sigma_t * \
+            noise_like(x.shape, device, repeat_noise) * temperature
         if noise_dropout > 0.:
             noise = torch.nn.functional.dropout(noise, p=noise_dropout)
         x_prev = a_prev.sqrt() * pred_x0 + dir_xt + noise
@@ -271,17 +286,19 @@ def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=F
         e_t_prime = (23 * e_t - 16 * old_eps[-1] + 5 * old_eps[-2]) / 12
     elif len(old_eps) >= 3:
         # 4nd order Pseudo Linear Multistep (Adams-Bashforth)
-        e_t_prime = (55 * e_t - 59 * old_eps[-1] + 37 * old_eps[-2] - 9 * old_eps[-3]) / 24
+        e_t_prime = (55 * e_t - 59 *
+                     old_eps[-1] + 37 * old_eps[-2] - 9 * old_eps[-3]) / 24
 
     x_prev, pred_x0 = get_x_prev_and_pred_x0(e_t_prime, index)
 
     return x_prev, pred_x0, e_t
-    
+
 # =================================================================================================
 # Monkey patch LatentInpaintDiffusion to load the checkpoint with a proper config.
 # Adapted from:
 # https://github.com/runwayml/stable-diffusion/blob/main/ldm/models/diffusion/ddpm.py
 # =================================================================================================
+
 
 @torch.no_grad()
 def get_unconditional_conditioning(self, batch_size, null_label=None):
@@ -329,4 +346,3 @@ def do_inpainting_hijack():
 
     ldm.models.diffusion.plms.PLMSSampler.p_sample_plms = p_sample_plms
     ldm.models.diffusion.plms.PLMSSampler.sample = sample_plms
-
