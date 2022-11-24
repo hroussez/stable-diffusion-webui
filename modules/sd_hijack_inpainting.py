@@ -209,7 +209,8 @@ def sample_plms(self,
 @torch.no_grad()
 def p_sample_plms(self, x, c, t, index, repeat_noise=False, use_original_steps=False, quantize_denoised=False,
                   temperature=1., noise_dropout=0., score_corrector=None, corrector_kwargs=None,
-                  unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None):
+                  unconditional_guidance_scale=1., unconditional_conditioning=None, old_eps=None, t_next=None,
+                  dynamic_threshold=None):
     b, *_, device = *x.shape, x.device
 
     def get_model_output(x, t):
